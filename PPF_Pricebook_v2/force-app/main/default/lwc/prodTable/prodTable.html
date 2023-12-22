@@ -1,0 +1,76 @@
+<!-- sldsValidatorIgnore -->
+<template>
+  <lightning-quick-action-panel>
+    <!-- Header Start -->
+    <div class="slds-modal__header">
+      <h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">
+        商品を選択してください。
+      </h1>
+      <lightning-progress-indicator
+        current-step={currentStep}
+        type="base"
+        variant="base"
+        ><lightning-progress-step
+          label="商品を選択"
+          value="1"
+        ></lightning-progress-step>
+        <lightning-progress-step
+          label="選択を編集"
+          value="2"
+        ></lightning-progress-step>
+      </lightning-progress-indicator>
+    </div>
+    <!-- Header End -->
+    <!-- Content Start -->
+    <!-- Step 1 datatable -->
+    <lightning-datatable
+      if:true={isStepOne}
+      key-field="id"
+      class="table1"
+      data={data1}
+      columns={columns}
+      show-row-number-column="true"
+      onsort={handleSortData}
+      sorted-by={sortBy}
+      sorted-direction={sortDirection}
+    >
+    </lightning-datatable>
+    <!-- Step 2 datatable -->
+    <lightning-datatable
+      if:true={isStepTwo}
+      class="table2"
+      key-field="id"
+      data={data2}
+      columns={columns}
+      show-row-number-column="true"
+      hide-checkbox-column="true"
+      row-number-offset="0"
+      onsave={handleSave}
+      draft-values={draftValues}
+    >
+    </lightning-datatable>
+    <!-- Content End -->
+    <!-- Footer Start -->
+    <div slot="footer">
+      <lightning-button
+        if:true={isEnablePrev}
+        variant="neutral"
+        label="戻る"
+        onclick={handlePrev}
+      ></lightning-button>
+      <lightning-button
+        if:true={isEnableNext}
+        variant="brand"
+        label="次へ"
+        onclick={handleNext}
+      ></lightning-button>
+      <lightning-button
+        if:true={isEnableFinish}
+        variant="brand"
+        label="保存"
+        onclick={handleFinish}
+      ></lightning-button>
+    </div>
+    <!-- Footer End -->
+  </lightning-quick-action-panel>
+</template>
