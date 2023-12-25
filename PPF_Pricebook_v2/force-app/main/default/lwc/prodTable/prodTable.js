@@ -13,9 +13,22 @@ const actions = [
   { label: '削除', name: 'delete' },
 ];
 
-// Set columns for datatable
-// データテーブルの列を設定
-const columns = [
+// Set columns for step 1 datatable
+// ステップ１のデータテーブルの列を設定
+const cols1 = [
+  { label: "商品名", fieldName: "Name", type: "Text", sortable: true },
+  {
+    label: "販売価格",
+    fieldName: "SalePrice__c",
+    type: "Currency",
+  },
+  { label: "数量", fieldName: "Amount__c", type: "Number" },
+  { label: "項目", fieldName: "ProductCategory__c", type: "Picklist", sortable: true },
+];
+
+// Set columns for step 2 datatable
+// ステップ２のデータテーブルの列を設定
+const cols2 = [
   { label: "商品名", fieldName: "Name", type: "Text", sortable: true },
   {
     label: "販売価格",
@@ -23,7 +36,6 @@ const columns = [
     type: "Currency",
     editable: true
   },
-  { label: '' },
   { label: "数量", fieldName: "Amount__c", type: "Number", editable: true },
   { label: "項目", fieldName: "ProductCategory__c", type: "Picklist", sortable: true },
   { type: 'action', typeAttributes: { rowActions: actions }, },
@@ -32,7 +44,7 @@ const columns = [
 
 export default class ProductTable extends NavigationMixin(LightningElement) {
   @track data = [];
-  columns = columns;
+  columns = cols1;
   @track error;
   @track sortBy;
   @track sortDirection;
@@ -135,6 +147,9 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   handleNext() {
     if (this.currentStep === '1') {
       this.currentStep = '2';
+      // set columns for datatable 2 when 次へ is clicked
+      // 次へをクリックしたときに、データテーブル２の欄を設定
+      this.columns = cols2;
       this.getSelectedProducts();
     }
     console.log('Page ', this.currentStep)
@@ -144,6 +159,9 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   handlePrev() {
     if (this.currentStep === '2') {
       this.currentStep = '1';
+      // set columns for datatable 1 when 戻る is clicked
+      // 「戻る」をクリックしたときに、データテーブル１の欄を設定
+      this.columns = cols1;
     }
     console.log('Page ', this.currentStep);
   }
@@ -160,14 +178,14 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
     console.log('selectedRecords: ', selectedRecords);
     console.log('selectedRecords: ', typeof selectedRecords);
     // Add selected rows to new datatable in step 2
-    // ステップ2で選択した行を新しいデータテーブルに追加
+    // ステップ２で選択した行を新しいデータテーブルに追加
     this.selectedData = selectedRecords;
     console.log('new dataset: ', this.selectedData)
     console.log('new dataset: ', typeof this.selectedData)
   }
 
-  // ----- Delete row in step 2 datatable -----
-  // ----- ステップ2のデータテーブルの行を削除 -----
+  // ----- Row actions for datatable 2 -----
+  // ----- データテーブル２の行アクション -----
   handleRowAction(event) {
     console.log('■' + event.detail.action.name);
     let actionName = event.detail.action.name;

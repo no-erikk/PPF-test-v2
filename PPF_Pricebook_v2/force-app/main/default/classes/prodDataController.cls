@@ -16,7 +16,7 @@ public with sharing class prodDataController {
     public static List<Product__c> getProducts() {
         try {
             return [
-                SELECT Id, Name, Amount__c, SalePrice__c, ProductCategory__c 
+                SELECT Id, Name, SalePrice__c, TaxedPrice__c, TaxFreePrice__c, TaxRate__c, Amount__c, ProductCategory__c 
                 FROM Product__c
                 WITH SECURITY_ENFORCED
                 ];
