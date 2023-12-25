@@ -44,7 +44,7 @@ const cols2 = [
 
 export default class ProductTable extends NavigationMixin(LightningElement) {
   @track data = [];
-  columns = cols1;
+  @track columns = cols1;
   @track error;
   @track sortBy;
   @track sortDirection;
@@ -65,12 +65,16 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
     }
   }
 
+  // Set sort column and direction
+  // 絞り込みの列と方向を設定
   handleSortData(event) {
     this.sortBy = event.detail.fieldName;
     this.sortDirection = event.detail.sortDirection;
     this.sortData(event.detail.fieldName, event.detail.sortDirection)
   }
 
+  // Parse data and sort
+  // データの解析と並べ替え
   sortData(fieldname, direction) {
     let parseData = JSON.parse(JSON.stringify(this.data));
     console.log('parsed data for sorting: ', parseData);
@@ -125,6 +129,9 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
 
   // ----- Page controls -----
   // ----- ページコントロール -----
+
+  // Set default step to 1
+  // 標準ステップを１に設定
   @track currentStep = '1';
 
   get isStepOne() {
@@ -193,7 +200,8 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
     // eslint-disable-next-line default-case
     switch (actionName) {
       case 'details':
-        // navigate to record detail page
+        // Navigate to record detail page
+        // レコードページに移動
         this[NavigationMixin.Navigate]({
           type: 'standard__recordPage',
           attributes: {
@@ -203,7 +211,8 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
         });
         break;
       case 'delete':
-        // eslint-disable-next-line no-shadow
+        // Remove selected row from the datatable
+        // データテーブルから選択された行を削除
         this.selectedData = this.selectedData.filter(row => row.Id !== event.detail.row.Id);
         console.log(event.detail.row.Id);
         break;
@@ -211,8 +220,8 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   }
 
 
-  // ----- Save Functionality -----
-  // ----- 保存機能 -----
+  // UNDER CONSTRUCTION ----- Save Functionality ----- UNDER CONSTRUCTION
+  // 開発中 ----- 保存機能 ----- 開発中
   /*   @api recordId;
     @track draftValues = []; */
 
@@ -299,7 +308,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
       try {
         // Pass edited fields to the updateContacts Apex controller
         // 編集した項目を updateContacts Apex コントローラに渡す
-        const result = await updateShouhin({ data: updatedFields });
+        const result = await updateProducts({ data: updatedFields });
         console.log(JSON.stringify("Apex update result: " + result));
         this.dispatchEvent(
           new ShowToastEvent({
