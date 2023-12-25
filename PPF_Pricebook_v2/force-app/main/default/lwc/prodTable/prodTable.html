@@ -26,8 +26,7 @@
     <lightning-datatable
       if:true={isStepOne}
       key-field="id"
-      class="table1"
-      data={data1}
+      data={data}
       columns={columns}
       show-row-number-column="true"
       onsort={handleSortData}
@@ -38,13 +37,15 @@
     <!-- Step 2 datatable -->
     <lightning-datatable
       if:true={isStepTwo}
-      class="table2"
       key-field="id"
-      data={data2}
+      data={selectedData}
       columns={columns}
       show-row-number-column="true"
       hide-checkbox-column="true"
-      row-number-offset="0"
+      onsort={handleSortData}
+      sorted-by={sortBy}
+      sorted-direction={sortDirection}
+      onrowaction={handleRowAction}
       onsave={handleSave}
       draft-values={draftValues}
     >
