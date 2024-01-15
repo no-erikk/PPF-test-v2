@@ -19,6 +19,7 @@ public with sharing class prodDataController {
                 SELECT Id, Name, SalePrice__c, TaxedPrice__c, TaxFreePrice__c, TaxRate__c, Amount__c, ProductCategory__c 
                 FROM Product__c
                 WITH SECURITY_ENFORCED
+                ORDER BY Name ASC
                 ];
         } catch (Exception e) {
             throw new AuraHandledException(e.getMessage());
@@ -26,7 +27,7 @@ public with sharing class prodDataController {
     }
 
 
-    @AuraEnabled(cacheable=true)
+    @AuraEnabled
     public static string updateProducts(Object data){
         List<Product__c> productForUpdate = (List<Product__c>) JSON.deserialize(
             JSON.serialize(data),
@@ -39,6 +40,7 @@ public with sharing class prodDataController {
             return 'Success: product updated successfully';
         } catch (Exception e) {
             throw new AuraHandledException(e.getMessage());
+            System.debug(e);
         }
     }
 }

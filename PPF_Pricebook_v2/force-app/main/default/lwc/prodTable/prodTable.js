@@ -16,34 +16,26 @@ const actions = [
 // Set columns for step 1 datatable
 // ステップ１のデータテーブルの列を設定
 const cols1 = [
-  { label: "商品名", fieldName: "Name", type: "Text", sortable: true },
-  {
-    label: "販売価格",
-    fieldName: "SalePrice__c",
-    type: "Currency",
-  },
-  { label: "数量", fieldName: "Amount__c", type: "Number" },
-  { label: "項目", fieldName: "ProductCategory__c", type: "Picklist", sortable: true },
+  { label: "商品名", fieldName: "Name", type: "text", sortable: true },
+  { label: "販売価格", fieldName: "SalePrice__c", type: "currency" },
+  { label: "数量", fieldName: "Amount__c", type: "number" },
+  { label: "項目", fieldName: "ProductCategory__c", type: "picklist", sortable: true },
 ];
 
 // Set columns for step 2 datatable
 // ステップ２のデータテーブルの列を設定
 const cols2 = [
-  { label: "商品名", fieldName: "Name", type: "Text", sortable: true },
-  {
-    label: "販売価格",
-    fieldName: "SalePrice__c",
-    type: "Currency",
-    editable: true
-  },
-  { label: "数量", fieldName: "Amount__c", type: "Number", editable: true },
-  { label: "項目", fieldName: "ProductCategory__c", type: "Picklist", sortable: true },
+  { label: "商品名", fieldName: "Name", type: "text", sortable: true },
+  { label: "販売価格", fieldName: "SalePrice__c", type: "currency", editable: true },
+  { label: "数量", fieldName: "Amount__c", type: "number", editable: true },
+  { label: "項目", fieldName: "ProductCategory__c", type: "picklist", sortable: true },
   { type: 'action', typeAttributes: { rowActions: actions }, },
 ];
 
 
 export default class ProductTable extends NavigationMixin(LightningElement) {
-  @track data = [];
+  @track data;
+  @track holdData;
   @track columns = cols1;
   @track error;
   @track sortBy;
@@ -54,15 +46,36 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
 
   // Pull object data and assign to "data"
   // オブジェクトのデータを取り出し、"data "に割り当てる
-  @wire(getProducts)
-  product({ error, data }) {
-    if (data) {
-      console.log('Raw data: ', data);
-      this.data = data;
-      console.log('parsed data: ', this.data);
-    } else if (error) {
-      this.error = error;
-    }
+  /*   @wire(getProducts)
+    product({ error, data }) {
+      if (data) {
+        console.log('Raw data: ', data);
+        this.data = data;
+        console.log('parsed data: ', this.data);
+      } else if (error) {
+        this.error = error;
+      }
+    } */
+
+  connectedCallback() {
+    // Call query in Apex class getProducts
+    // ApexクラスのgetProductsでクエリを呼び出す
+    getProducts()
+      .then(result => {
+        //console.log('connectedCallback is call with result');
+        this.data = result;
+        // duplicate data to recall when 戻る is clicked
+        // 「戻る」をクリックしたときのための複製データを作る
+        this.holdData = result;
+        this.error = undefined;
+        //console.log('parsed data: ', this.data);
+      })
+      .catch(error => {
+        //console.log('connectedCallback is call with error');
+        this.error = error;
+        this.data = undefined
+        this.holdData = undefined
+      });
   }
 
   // Set sort column and direction
@@ -70,14 +83,14 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   handleSortData(event) {
     this.sortBy = event.detail.fieldName;
     this.sortDirection = event.detail.sortDirection;
-    this.sortData(event.detail.fieldName, event.detail.sortDirection)
+    this.sortData(this.sortBy, this.sortDirection);
   }
 
   // Parse data and sort
   // データの解析と並べ替え
   sortData(fieldname, direction) {
     let parseData = JSON.parse(JSON.stringify(this.data));
-    console.log('parsed data for sorting: ', parseData);
+    //console.log('parsed data for sorting: ', parseData);
     let keyValue = (a) => {
       return a[fieldname];
     };
@@ -90,42 +103,6 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
     this.data = parseData;
   }
 
-  /*     // ----- server-side data grab and sorting -----
-      // ----- サーバー側のデータの取得と絞り込み -----
-      @track data1;
-      @track data2 = [];
-      @track error;
-      @track columns = columns;
-      @track actions = actions;
-      @track sortBy = "ProductCategory__c";
-      @track sortDirection = "asc";
-      refreshTable;
-    
-      // grabs data using query in cls file, checks for errors and assigns data to correct variable
-      // clsファイル内のクエリを使用してデータを取得し、エラーをチェックして、データを正しい変数に割り当て
-        @wire(getProducts, { field: "$sortBy", sortOrder: "$sortDirection" })
-        shouhinList({ error, data }) {
-          if (data) {
-            // JSON to make a deep copy
-            // JSON deep copyを作成
-            console.log('Raw data: ' + data)
-            this.data1 = JSON.parse(JSON.stringify(data));
-            console.log('parsed data: ' + this.data1);
-          } else if (error) {
-            this.error = error;
-          }
-        }
-  
-    // sets user defined sorting column and direction
-    // ユーザー定義の並べ替え列と方向を設定
-      handleSortData(event) {
-        let fieldname = event.detail.fieldName;
-        let sortDirection = event.detail.sortDirection;
-        // assign the values. triggers wire reload
-        // 値を割り当て、 ワイヤーのリロードを実行
-        this.sortBy = fieldname;
-        this.sortDirection = sortDirection;
-      } */
 
   // ----- Page controls -----
   // ----- ページコントロール -----
@@ -159,7 +136,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
       this.columns = cols2;
       this.getSelectedProducts();
     }
-    console.log('Page ', this.currentStep)
+    //console.log('Page ', this.currentStep)
   }
   // Previous page
   // 前のページへ
@@ -169,27 +146,28 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
       // set columns for datatable 1 when 戻る is clicked
       // 「戻る」をクリックしたときに、データテーブル１の欄を設定
       this.columns = cols1;
+      // reset data to original when 戻る is clicked
+      // 「戻る」をクリックしたときに、データを元に戻す
+      this.data = this.holdData;
     }
-    console.log('Page ', this.currentStep);
+    //console.log('Page ', this.currentStep);
   }
+
 
   // ----- Transfer selected rows -----
   // ----- 選択した行を転送 ------
 
   // Grab selected rows in step 1
   // ステップ1で選択された行を取得
-  @track selectedData = [];
-
   getSelectedProducts() {
     var selectedRecords = this.template.querySelector('lightning-datatable').getSelectedRows();
-    console.log('selectedRecords: ', selectedRecords);
-    console.log('selectedRecords: ', typeof selectedRecords);
+    //console.log('selectedRecords: ', selectedRecords);
     // Add selected rows to new datatable in step 2
     // ステップ２で選択した行を新しいデータテーブルに追加
-    this.selectedData = selectedRecords;
-    console.log('new dataset: ', this.selectedData)
-    console.log('new dataset: ', typeof this.selectedData)
+    this.data = selectedRecords;
+    //console.log('new dataset: ', this.data)
   }
+
 
   // ----- Row actions for datatable 2 -----
   // ----- データテーブル２の行アクション -----
@@ -209,12 +187,13 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
             actionName: 'view'
           }
         });
+        //console.log('selected row data: ', row)
         break;
       case 'delete':
         // Remove selected row from the datatable
         // データテーブルから選択された行を削除
-        this.selectedData = this.selectedData.filter(row => row.Id !== event.detail.row.Id);
-        console.log(event.detail.row.Id);
+        this.data = this.data.filter(row => row.Id !== event.detail.row.Id);
+        //console.log(event.detail.row.Id);
         break;
     }
   }
