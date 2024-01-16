@@ -68,7 +68,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
         // 「戻る」をクリックしたときのための複製データを作る
         this.holdData = result;
         this.error = undefined;
-        //console.log('parsed data: ', this.data);
+        //console.log('loaded data: ', JSON.parse(JSON.stringify(this.data)));
       })
       .catch(error => {
         //console.log('connectedCallback is call with error');
@@ -172,7 +172,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   // ----- Row actions for datatable 2 -----
   // ----- データテーブル２の行アクション -----
   handleRowAction(event) {
-    console.log('■' + event.detail.action.name);
+    //console.log('■ ' + event.detail.action.name);
     let actionName = event.detail.action.name;
     let row = event.detail.row;
     // eslint-disable-next-line default-case
@@ -201,81 +201,28 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
 
   // UNDER CONSTRUCTION ----- Save Functionality ----- UNDER CONSTRUCTION
   // 開発中 ----- 保存機能 ----- 開発中
-  /*   @api recordId;
-    @track draftValues = []; */
 
-  /*   handleSave(event) {
-      this.draftValues = event.detail.draftValues;
-      const inputsItems = this.draftValues.slice().map(draft => {
-        const fields = Object.assign({}, draft)
-        return { fields };
-      });
-  
-      const promises = inputsItems.map(recordInput => updateRecord(recordInput));
-          Promise.all(promises).then(res => {
-              this.dispatchEvent(
-                  new ShowToastEvent({
-                      title: 'Success',
-                      message: 'Records Updated Successfully!!',
-                      variant: 'success'
-                  })
-              );
-              this.draftValues = [];
-              return this.refresh();
-          }).catch(error => {
-              this.dispatchEvent(
-                  new ShowToastEvent({
-                      title: 'Error',
-                      message: 'An Error Occured!!',
-                      variant: 'error'
-                  })
-              );
-          }).finally(() => {
-              this.draftValues = [];
-          });
-      }
-  
-      async refresh() {
-          await refreshApex(this.data);
-      } */
+  @track draftValues = [];
 
+  async handleSave(event) {
+    this.draftValues = event.detail.draftValues
+    //console.log('draftvalues: ', this.draftValues)
 
-  /*   async handleSave(event) {
-      // Convert datatable draft values into record objects
-      const records = event.detail.draftValues.slice().map((draftValue) => {
-        const fields = Object.assign({}, draftValue);
-        return { fields };
-      });
-  
-      // Clear all datatable draft values
-      this.draftValues = [];
-  
-      try {
-        // Update all records in parallel
-        const recordUpdatePromises = records.map((record) => updateRecord(record));
-        await Promise.all(recordUpdatePromises);
-  
-        // Report success with a toast
-        this.dispatchEvent(
-          new ShowToastEvent({
-            title: "Success",
-            message: "records updated",
-            variant: "success",
-          }),
-        );
-  
-        // Display fresh data in the datatable
-        await refreshApex(this.data);
-      } catch (error) {
-        this.dispatchEvent(
-          new ShowToastEvent({
-            title: "Error updating or reloading records",
-            message: error.body.message,
-            variant: "error",
-          }),
-        );
-      }
-    } */
+    this.data = this.data.map(originalRow => {
+      // Find the corresponding draft value for the current row
+      // 現在の行に対応するドラフト値を見つける
+      const draftRow = this.draftValues.find(draft => draft.Id === originalRow.Id);
+
+      // Check original data for matching value from draftValues and replace, otherwise keep original value
+      // draftValuesから元データと一致する値をチェックし、置き換える。見つからない場合は、元の値を保持する。
+      return draftRow ? { ...originalRow, ...draftRow } : originalRow;
+    });
+    //console.log('updated datatable: ', this.data);
+
+    // Clear all datatable draft values
+    // すべてのデータテーブルのドラフト値をクリアする
+    this.draftValues = [];
+  }
 
 
   /*   async handleSave(event) {
@@ -317,6 +264,5 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
           })
         );
       }
-    } */
 
 }
