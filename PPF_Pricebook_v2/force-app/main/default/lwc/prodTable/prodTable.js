@@ -201,8 +201,8 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   }
 
 
-  // ----- Save Functionality -----
-  // ----- 保存機能 -----
+  // ----- Save User Edited Fields -----
+  // ----- ユーザー編集フィールドの保存 -----
 
   @track draftValues = [];
 
@@ -221,18 +221,15 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
     });
     //console.log('updated datatable: ', this.data);
 
-    // Clear all datatable draft values
-    // すべてのデータテーブルのドラフト値をクリアする
-    this.draftValues = [];
   }
 
+  // ----- Create New QuoteLineItem__c records for each line in the datatable -----
+  // ----- データテーブルの各行について、新しいQuoteLineItem__cレコードを作成する -----
   createLineItem() {
-    let quoteLineItemInfo = { 'apiName': 'QuoteLineItem__c' }
-    console.log(quoteLineItemInfo)
     let quoteLineItemFields = []
 
-    // assign values from Product__c to the corresponding fields in QuoteLineItem__c
-    // Product__cの値をQuoteLineItem__c の対応するフィールドに代入する。
+    // Assign values from Product__c to the corresponding fields in QuoteLineItem__c
+    // Product__cの値をQuoteLineItem__c の対応するフィールドに代入する
     this.data.forEach(row => {
       quoteLineItemFields.push({
         //Cost__c: undefined, // Flowで追加される計算フィールド
@@ -249,11 +246,31 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
     });
     console.log('Fields for Record Input: ', quoteLineItemFields)
 
+    // Pass assigned values to prodDataController to create records via Apex
+    // Apexでレコードを作成するために、prodDataControllerに代入された値を渡す
     createRecords({ objectName: 'QuoteLineItem__c', dataList: quoteLineItemFields })
       .then(result => {
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: 'Success',
+            message: 'Products Added to Quote.',
+            variant: 'success'
+          })
+        );
         console.log('Record created successfully:', result);
+
+        // Clear all datatable draft values
+        // すべてのデータテーブルのドラフト値をクリアする
+        this.draftValues = [];
       })
       .catch(error => {
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: 'Error',
+            message: 'An error has occurred.',
+            variant: 'error'
+          })
+        );
         console.error('Error creating record:', error);
       });
   }
