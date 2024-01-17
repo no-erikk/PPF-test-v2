@@ -1,11 +1,8 @@
-import { LightningElement, track, wire } from "lwc";
-//import { refreshApex } from "@salesforce/apex";
-//import { getRecord, updateRecord, notifyRecordUpdateAvailable } from "lightning/uiRecordApi";
-//import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { LightningElement, track, api } from "lwc";
+
 import getProducts from "@salesforce/apex/prodDataController.getProducts";
 import createRecords from "@salesforce/apex/prodDataController.createRecords";
 import { NavigationMixin } from 'lightning/navigation';
-//import updateProducts from "@salesforce/apex/prodDataController.updateProducts";
 
 // Set actions for datatable
 // データテーブルにアクションを設定
@@ -35,13 +32,16 @@ const cols2 = [
 
 
 export default class ProductTable extends NavigationMixin(LightningElement) {
-  @track data;
-  @track holdData;
+  // recordId corresponds to the ID of the record page the modal was launched from
+  // recordIdは、モーダルが起動されたレコード ページのIDに対応します。
+  @api recordId;
+  @track data; // データテーブル
+  @track holdData; // 元データテーブルのコピー
   @track columns = cols1;
   @track error;
   @track sortBy;
   @track sortDirection;
-  @track currentQuoteId;
+
 
   // ----- Retrieve data and local sorting -----
   // ----- データの取得とローカル絞り込み -----
@@ -201,8 +201,8 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   }
 
 
-  // UNDER CONSTRUCTION ----- Save Functionality ----- UNDER CONSTRUCTION
-  // 開発中 ----- 保存機能 ----- 開発中
+  // ----- Save Functionality -----
+  // ----- 保存機能 -----
 
   @track draftValues = [];
 
@@ -226,14 +226,13 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
     this.draftValues = [];
   }
 
-
   createLineItem() {
     let quoteLineItemInfo = { 'apiName': 'QuoteLineItem__c' }
     console.log(quoteLineItemInfo)
     let quoteLineItemFields = []
 
     // assign values from Product__c to the corresponding fields in QuoteLineItem__c
-    // Product__c の値を QuoteLineItem__c の対応するフィールドに代入する。
+    // Product__cの値をQuoteLineItem__c の対応するフィールドに代入する。
     this.data.forEach(row => {
       quoteLineItemFields.push({
         //Cost__c: undefined, // Flowで追加される計算フィールド
@@ -243,25 +242,19 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
         ProductCategory__c: row.ProductCategory__c,
         Quantity__c: row.Amount__c,
         TaxRate__c: row.TaxRate__c,
-        QuoteMaster__c: this.currentQuoteId,
+        QuoteMaster__c: this.recordId,
         Name: row.Name,
         SalePrice__c: row.SalePrice__c
       });
     });
     console.log('Fields for Record Input: ', quoteLineItemFields)
 
-    const recordInput = { 'apiName': 'QuoteLineItem__c', quoteLineItemFields }
-    console.log('record input ', recordInput)
-
-
     createRecords({ objectName: 'QuoteLineItem__c', dataList: quoteLineItemFields })
       .then(result => {
         console.log('Record created successfully:', result);
-        // Handle success
       })
       .catch(error => {
         console.error('Error creating record:', error);
-        // Handle error
       });
   }
 
