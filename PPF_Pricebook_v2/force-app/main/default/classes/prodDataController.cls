@@ -64,7 +64,7 @@ public with sharing class prodDataController {
         return createdRecordIds;
         } catch (Exception e) {
             throw new AuraHandledException(e.getMessage());
-            System.debug(e);
+            //System.debug(e);
         }
     }
 

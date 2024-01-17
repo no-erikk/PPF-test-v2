@@ -263,7 +263,6 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
         console.error('Error creating record:', error);
         // Handle error
       });
-
   }
 
 }

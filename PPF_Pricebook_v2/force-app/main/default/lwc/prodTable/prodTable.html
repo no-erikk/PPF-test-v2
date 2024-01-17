@@ -25,7 +25,7 @@
     <!-- Step 1 datatable -->
     <lightning-datatable
       if:true={isStepOne}
-      key-field="id"
+      key-field="Id"
       data={data}
       columns={columns}
       show-row-number-column="true"
@@ -37,7 +37,7 @@
     <!-- Step 2 datatable -->
     <lightning-datatable
       if:true={isStepTwo}
-      key-field="id"
+      key-field="Id"
       data={data}
       columns={columns}
       show-row-number-column="true"
@@ -68,8 +68,8 @@
       <lightning-button
         if:true={isEnableFinish}
         variant="brand"
-        label="保存"
-        onclick={handleFinish}
+        label="商品を追加"
+        onclick={createLineItem}
       ></lightning-button>
     </div>
     <!-- Footer End -->
