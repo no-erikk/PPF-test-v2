@@ -1,5 +1,6 @@
 import { LightningElement, track, api } from "lwc";
-
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { CloseActionScreenEvent } from 'lightning/actions';
 import getProducts from "@salesforce/apex/prodDataController.getProducts";
 import createRecords from "@salesforce/apex/prodDataController.createRecords";
 import { NavigationMixin } from 'lightning/navigation';
@@ -223,6 +224,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
 
   }
 
+  
   // ----- Create New QuoteLineItem__c records for each line in the datatable -----
   // ----- データテーブルの各行について、新しいQuoteLineItem__cレコードを作成する -----
   createLineItem() {
@@ -251,17 +253,23 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
     createRecords({ objectName: 'QuoteLineItem__c', dataList: quoteLineItemFields })
       .then(result => {
         this.dispatchEvent(
+          // Show success message
+          // 成功メッセージを表示
           new ShowToastEvent({
             title: 'Success',
             message: 'Products Added to Quote.',
             variant: 'success'
-          })
+          }),
         );
         console.log('Record created successfully:', result);
 
         // Clear all datatable draft values
         // すべてのデータテーブルのドラフト値をクリアする
         this.draftValues = [];
+
+        // close modal
+        // モーダルを閉じる
+        this.dispatchEvent(new CloseActionScreenEvent());
       })
       .catch(error => {
         this.dispatchEvent(
