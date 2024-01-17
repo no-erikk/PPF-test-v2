@@ -3,6 +3,7 @@ import { LightningElement, track, wire } from "lwc";
 //import { getRecord, updateRecord, notifyRecordUpdateAvailable } from "lightning/uiRecordApi";
 //import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getProducts from "@salesforce/apex/prodDataController.getProducts";
+import createRecords from "@salesforce/apex/prodDataController.createRecords";
 import { NavigationMixin } from 'lightning/navigation';
 //import updateProducts from "@salesforce/apex/prodDataController.updateProducts";
 
@@ -40,6 +41,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   @track error;
   @track sortBy;
   @track sortDirection;
+  @track currentQuoteId;
 
   // ----- Retrieve data and local sorting -----
   // ----- データの取得とローカル絞り込み -----
@@ -225,44 +227,43 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   }
 
 
-  /*   async handleSave(event) {
-      const updatedFields = event.detail.draftValues;
-  
-      // Prepare the record IDs for notifyRecordUpdateAvailable()
-      const notifyChangeIds = updatedFields.map(row => { return { "recordId": row.Id } });
-  
-      try {
-        // Pass edited fields to the updateContacts Apex controller
-        // 編集した項目を updateContacts Apex コントローラに渡す
-        const result = await updateProducts({ data: updatedFields });
-        console.log(JSON.stringify("Apex update result: " + result));
-        this.dispatchEvent(
-          new ShowToastEvent({
-            title: 'Success',
-            message: 'Contact updated',
-            variant: 'success'
-          })
-        );
-  
-        // Refresh LDS cache and wires
-        // LDS キャッシュとワイヤーをリフレッシュ
-        notifyRecordUpdateAvailable(notifyChangeIds);
-  
-        // Display fresh data in the datatable
-        // データテーブル内の新しいデータを表示
-        await refreshApex(this.data);
-        // Clear all draft values in the datatable
-        // データテーブル内のすべてのドラフト値をクリア
-        this.draftValues = [];
-  
-      } catch (error) {
-        this.dispatchEvent(
-          new ShowToastEvent({
-            title: 'Error updating or refreshing records',
-            message: error.body.message,
-            variant: 'error'
-          })
-        );
-      }
+  createLineItem() {
+    let quoteLineItemInfo = { 'apiName': 'QuoteLineItem__c' }
+    console.log(quoteLineItemInfo)
+    let quoteLineItemFields = []
+
+    // assign values from Product__c to the corresponding fields in QuoteLineItem__c
+    // Product__c の値を QuoteLineItem__c の対応するフィールドに代入する。
+    this.data.forEach(row => {
+      quoteLineItemFields.push({
+        //Cost__c: undefined, // Flowで追加される計算フィールド
+        //TaxFreePrice__c: undefined, // Flowで追加される計算フィールド
+        //LineItemTotal__c: undefined, // Flowで追加される計算フィールド
+        Product2__c: row.Id,
+        ProductCategory__c: row.ProductCategory__c,
+        Quantity__c: row.Amount__c,
+        TaxRate__c: row.TaxRate__c,
+        QuoteMaster__c: this.currentQuoteId,
+        Name: row.Name,
+        SalePrice__c: row.SalePrice__c
+      });
+    });
+    console.log('Fields for Record Input: ', quoteLineItemFields)
+
+    const recordInput = { 'apiName': 'QuoteLineItem__c', quoteLineItemFields }
+    console.log('record input ', recordInput)
+
+
+    createRecords({ objectName: 'QuoteLineItem__c', dataList: quoteLineItemFields })
+      .then(result => {
+        console.log('Record created successfully:', result);
+        // Handle success
+      })
+      .catch(error => {
+        console.error('Error creating record:', error);
+        // Handle error
+      });
+
+  }
 
 }
