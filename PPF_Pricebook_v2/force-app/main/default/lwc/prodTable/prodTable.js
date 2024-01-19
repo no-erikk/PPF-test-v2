@@ -1,9 +1,10 @@
 import { LightningElement, track, api } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
-import { CloseActionScreenEvent } from 'lightning/actions';
+import { CloseActionScreenEvent } from "lightning/actions";
 import getProducts from "@salesforce/apex/prodDataController.getProducts";
 import createRecords from "@salesforce/apex/prodDataController.createRecords";
-import { NavigationMixin } from 'lightning/navigation';
+import { NavigationMixin } from "lightning/navigation";
+import { RefreshEvent } from "lightning/refresh";
 
 // Set actions for datatable
 // データテーブルにアクションを設定
@@ -133,10 +134,8 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   // 次のページへ
   handleNext() {
     if (this.currentStep === '1') {
-      this.currentStep = '2';
-      // set columns for datatable 2 when 次へ is clicked
-      // 次へをクリックしたときに、データテーブル２の欄を設定
-      this.columns = cols2;
+      // to proper handle errors, code to move to the next page has been integraded with getSelectedProducts
+      // エラーを適切に処理するために、次のページに移動するコードがgetSelectedProductsに統合されました。
       this.getSelectedProducts();
     }
     //console.log('Page ', this.currentStep)
@@ -167,7 +166,28 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
     //console.log('selectedRecords: ', selectedRecords);
     // Add selected rows to new datatable in step 2
     // ステップ２で選択した行を新しいデータテーブルに追加
-    this.data = selectedRecords;
+    if (selectedRecords.length > 0) {
+      // set new data for inline edit if selectedRecords is not empty
+      // selectedRecordsが空でない場合、インライン編集用に新しいデータを設定
+      this.data = selectedRecords;
+      // set columns for datatable 2 when 次へ is clicked
+      // 次へをクリックしたときに、データテーブル２の欄を設定
+      this.columns = cols2;
+      // set current step to 2 if selectedRecords is not empty
+      // selectedRecordsが空でなければ、現在のステップを2に設定
+      this.currentStep = '2';
+    } else if (selectedRecords < 1) {
+      this.data = this.holdData;
+      this.currentStep = '1';
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: 'Error',
+          message: 'No products selected.',
+          variant: 'error'
+        }),
+      );
+
+    }
     //console.log('new dataset: ', this.data)
   }
 
@@ -224,7 +244,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
 
   }
 
-  
+
   // ----- Create New QuoteLineItem__c records for each line in the datatable -----
   // ----- データテーブルの各行について、新しいQuoteLineItem__cレコードを作成する -----
   createLineItem() {
@@ -261,13 +281,16 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
             variant: 'success'
           }),
         );
-        console.log('Record created successfully:', result);
+        //console.log('Record created successfully:', result);
 
         // Clear all datatable draft values
         // すべてのデータテーブルのドラフト値をクリアする
         this.draftValues = [];
 
-        // close modal
+        // Refresh record page UI to show new data
+        this.dispatchEvent(new RefreshEvent());
+
+        // Close modal
         // モーダルを閉じる
         this.dispatchEvent(new CloseActionScreenEvent());
       })
