@@ -7,14 +7,14 @@ import { NavigationMixin } from "lightning/navigation";
 import { RefreshEvent } from "lightning/refresh";
 
 // Set actions for datatable
-// データテーブルにアクションを設定
+// データテーブルにアクションを設定する
 const actions = [
   { label: '詳細', name: 'details' },
   { label: '削除', name: 'delete' },
 ];
 
 // Set columns for step 1 datatable
-// ステップ１のデータテーブルの列を設定
+// ステップ１のデータテーブルの列を設定する
 const cols1 = [
   { label: "商品名", fieldName: "Name", type: "text", sortable: true },
   { label: "販売価格", fieldName: "SalePrice__c", type: "currency" },
@@ -23,7 +23,7 @@ const cols1 = [
 ];
 
 // Set columns for step 2 datatable
-// ステップ２のデータテーブルの列を設定
+// ステップ２のデータテーブルの列を設定する
 const cols2 = [
   { label: "商品名", fieldName: "Name", type: "text", sortable: true },
   { label: "販売価格", fieldName: "SalePrice__c", type: "currency", editable: true },
@@ -68,7 +68,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
       .then(result => {
         //console.log('connectedCallback is call with result');
         this.data = result;
-        // duplicate data to recall when 戻る is clicked
+        // Duplicate data to recall when 戻る is clicked
         // 「戻る」をクリックしたときのための複製データを作る
         this.holdData = result;
         this.error = undefined;
@@ -83,7 +83,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   }
 
   // Set sort column and direction
-  // 絞り込みの列と方向を設定
+  // 絞り込みの列と方向を設定する
   handleSortData(event) {
     this.sortBy = event.detail.fieldName;
     this.sortDirection = event.detail.sortDirection;
@@ -112,7 +112,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   // ----- ページコントロール -----
 
   // Set default step to 1
-  // 標準ステップを１に設定
+  // 標準ステップを１に設定する
   @track currentStep = '1';
 
   get isStepOne() {
@@ -134,7 +134,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   // 次のページへ
   handleNext() {
     if (this.currentStep === '1') {
-      // to proper handle errors, code to move to the next page has been integraded with getSelectedProducts
+      // To properly handle errors, code to move to the next page has been integraded with getSelectedProducts
       // エラーを適切に処理するために、次のページに移動するコードがgetSelectedProductsに統合されました。
       this.getSelectedProducts();
     }
@@ -145,10 +145,10 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   handlePrev() {
     if (this.currentStep === '2') {
       this.currentStep = '1';
-      // set columns for datatable 1 when 戻る is clicked
-      // 「戻る」をクリックしたときに、データテーブル１の欄を設定
+      // Set columns for datatable 1 when 戻る is clicked
+      // 「戻る」をクリックしたときに、データテーブル１の欄を設定する
       this.columns = cols1;
-      // reset data to original when 戻る is clicked
+      // Reset data to original when 戻る is clicked
       // 「戻る」をクリックしたときに、データを元に戻す
       this.data = this.holdData;
     }
@@ -157,26 +157,29 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
 
 
   // ----- Transfer selected rows -----
-  // ----- 選択した行を転送 ------
+  // ----- 選択した行を転送する ------
 
-  // Grab selected rows in step 1
-  // ステップ1で選択された行を取得
+
   getSelectedProducts() {
+    // Grab selected rows in step 1
+    // ステップ1で選択された行を取得する
     var selectedRecords = this.template.querySelector('lightning-datatable').getSelectedRows();
     //console.log('selectedRecords: ', selectedRecords);
-    // Add selected rows to new datatable in step 2
-    // ステップ２で選択した行を新しいデータテーブルに追加
+    // Check that selectedRecords is not empty
+    // selectedRecordsが空でないことを確認する
     if (selectedRecords.length > 0) {
-      // set new data for inline edit if selectedRecords is not empty
-      // selectedRecordsが空でない場合、インライン編集用に新しいデータを設定
+      // Add selected rows to new datatable in step 2
+      // ステップ２で選択した行を新しいデータテーブルに追加する
       this.data = selectedRecords;
-      // set columns for datatable 2 when 次へ is clicked
-      // 次へをクリックしたときに、データテーブル２の欄を設定
+      // Set columns for datatable 2 when 次へ is clicked
+      // 次へをクリックしたときに、データテーブル２の欄を設定する
       this.columns = cols2;
-      // set current step to 2 if selectedRecords is not empty
-      // selectedRecordsが空でなければ、現在のステップを2に設定
+      // Set current step to 2 if selectedRecords is not empty
+      // selectedRecordsが空でなければ、現在のステップを2に設定する
       this.currentStep = '2';
     } else {
+      // If selectedRecords is empty, stay on page 1, reset data, and display error message
+      // selectedRecordsが空の場合、1ページに留まり、データをリセットし、エラーメッセージを表示する
       this.data = this.holdData;
       this.currentStep = '1';
       this.dispatchEvent(
@@ -275,7 +278,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
         SalePrice__c: row.SalePrice__c
       });
     });
-    console.log('Fields for Record Input: ', quoteLineItemFields)
+    //console.log('Fields for Record Input: ', quoteLineItemFields)
 
     // Pass assigned values to prodDataController to create records via Apex
     // Apexでレコードを作成するために、prodDataControllerに代入された値を渡す
