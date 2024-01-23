@@ -176,17 +176,16 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
       // set current step to 2 if selectedRecords is not empty
       // selectedRecordsが空でなければ、現在のステップを2に設定
       this.currentStep = '2';
-    } else if (selectedRecords < 1) {
+    } else {
       this.data = this.holdData;
       this.currentStep = '1';
       this.dispatchEvent(
         new ShowToastEvent({
           title: 'Error',
-          message: 'No products selected.',
+          message: '選択された商品はありません。',
           variant: 'error'
         }),
       );
-
     }
     //console.log('new dataset: ', this.data)
   }
@@ -217,6 +216,17 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
         // データテーブルから選択された行を削除
         this.data = this.data.filter(row => row.Id !== event.detail.row.Id);
         //console.log(event.detail.row.Id);
+        if (this.data.length === 0) {
+          this.data = this.holdData;
+          this.currentStep = '1';
+          this.dispatchEvent(
+            new ShowToastEvent({
+              title: 'Error',
+              message: '選択された商品はありません。',
+              variant: 'error'
+            }),
+          );
+        }
         break;
     }
   }
@@ -241,7 +251,6 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
       return draftRow ? { ...originalRow, ...draftRow } : originalRow;
     });
     //console.log('updated datatable: ', this.data);
-
   }
 
 
@@ -271,13 +280,13 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
     // Pass assigned values to prodDataController to create records via Apex
     // Apexでレコードを作成するために、prodDataControllerに代入された値を渡す
     createRecords({ objectName: 'QuoteLineItem__c', dataList: quoteLineItemFields })
-      .then(result => {
+      .then(() => {
         this.dispatchEvent(
           // Show success message
           // 成功メッセージを表示
           new ShowToastEvent({
             title: 'Success',
-            message: 'Products Added to Quote.',
+            message: 'お見積もりに追加しました。',
             variant: 'success'
           }),
         );
