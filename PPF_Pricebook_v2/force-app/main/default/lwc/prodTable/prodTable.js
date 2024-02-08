@@ -4,7 +4,6 @@ import { CloseActionScreenEvent } from "lightning/actions";
 import getProducts from "@salesforce/apex/prodDataController.getProducts";
 import createRecords from "@salesforce/apex/prodDataController.createRecords";
 import { NavigationMixin } from "lightning/navigation";
-import { RefreshEvent } from "lightning/refresh";
 
 // Set actions for datatable
 // データテーブルにアクションを設定する
@@ -55,6 +54,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
       if (data) {
         console.log('Raw data: ', data);
         this.data = data;
+        this.holdData = data
         console.log('parsed data: ', this.data);
       } else if (error) {
         this.error = error;
@@ -151,6 +151,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
       // Reset data to original when 戻る is clicked
       // 「戻る」をクリックしたときに、データを元に戻す
       this.data = this.holdData;
+      this.draftValues = [];
     }
     //console.log('Page ', this.currentStep);
   }
@@ -158,8 +159,6 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
 
   // ----- Transfer selected rows -----
   // ----- 選択した行を転送する ------
-
-
   getSelectedProducts() {
     // Grab selected rows in step 1
     // ステップ1で選択された行を取得する
@@ -240,7 +239,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
 
   @track draftValues = [];
 
-  async handleSave(event) {
+  handleSave(event) {
     this.draftValues = event.detail.draftValues
     //console.log('draftvalues: ', this.draftValues)
 
@@ -253,13 +252,13 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
       // draftValuesから元データと一致する値をチェックし、置き換える。見つからない場合は、元の値を保持する。
       return draftRow ? { ...originalRow, ...draftRow } : originalRow;
     });
-    //console.log('updated datatable: ', this.data);
+    console.log('updated datatable: ', this.data);
   }
 
 
   // ----- Create New QuoteLineItem__c records for each line in the datatable -----
   // ----- データテーブルの各行について、新しいQuoteLineItem__cレコードを作成する -----
-  createLineItem() {
+  handleFinish() {
     let quoteLineItemFields = []
 
     // Assign values from Product__c to the corresponding fields in QuoteLineItem__c
@@ -283,28 +282,32 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
     // Pass assigned values to prodDataController to create records via Apex
     // Apexでレコードを作成するために、prodDataControllerに代入された値を渡す
     createRecords({ objectName: 'QuoteLineItem__c', dataList: quoteLineItemFields })
-      .then(() => {
+      .then(result => {
         this.dispatchEvent(
           // Show success message
           // 成功メッセージを表示
           new ShowToastEvent({
             title: 'Success',
-            message: 'お見積もりに追加しました。',
+            message: 'お見積もりに商品を追加しました。間もなく、このページはリフレッシュされます。',
             variant: 'success'
           }),
         );
-        //console.log('Record created successfully:', result);
+        console.log('Record created successfully:', result);
 
         // Clear all datatable draft values
         // すべてのデータテーブルのドラフト値をクリアする
         this.draftValues = [];
 
-        // Refresh record page UI to show new data
-        this.dispatchEvent(new RefreshEvent());
-
         // Close modal
         // モーダルを閉じる
         this.dispatchEvent(new CloseActionScreenEvent());
+
+        // Reload browser window to refresh data on parent record
+        // 親レコードのデータを更新するためにブラウザウィンドウをリロードする
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       })
       .catch(error => {
         this.dispatchEvent(
