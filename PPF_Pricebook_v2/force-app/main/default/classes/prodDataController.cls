@@ -17,11 +17,11 @@ public with sharing class prodDataController {
 
 
     @AuraEnabled
-    public static List<Id> createRecords(String objectName, List<Map<String, Object>> dataList){
+    public static List<Id> createRecords(String objectName, List<Map<String, Object>> fields){
         try {
             List<Id> createdRecordIds = new List<Id>();
 
-        for (Map<String, Object> data : dataList) {
+        for (Map<String, Object> data : fields) {
             SObject newRecord = (SObject)Type.forName('Schema.' + objectName).newInstance();
 
             for (String fieldName : data.keySet()) {

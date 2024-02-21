@@ -240,19 +240,36 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
   @track draftValues = [];
 
   handleSave(event) {
-    this.draftValues = event.detail.draftValues
-    //console.log('draftvalues: ', this.draftValues)
+    try {
+      this.draftValues = event.detail.draftValues
+      //console.log('draftvalues: ', this.draftValues)
 
-    this.data = this.data.map(originalRow => {
-      // Find the corresponding draft value for the current row
-      // 現在の行に対応するドラフト値を見つける
-      const draftRow = this.draftValues.find(draft => draft.Id === originalRow.Id);
+      this.data = this.data.map(originalRow => {
+        // Find the corresponding draft value for the current row
+        // 現在の行に対応するドラフト値を見つける
+        const draftRow = this.draftValues.find(draft => draft.Id === originalRow.Id);
 
-      // Check original data for matching value from draftValues and replace, otherwise keep original value
-      // draftValuesから元データと一致する値をチェックし、置き換える。見つからない場合は、元の値を保持する。
-      return draftRow ? { ...originalRow, ...draftRow } : originalRow;
-    });
-    console.log('updated datatable: ', this.data);
+        // Check original data for matching value from draftValues and replace, otherwise keep original value
+        // draftValuesから元データと一致する値をチェックし、置き換える。見つからない場合は、元の値を保持する。
+        return draftRow ? { ...originalRow, ...draftRow } : originalRow;
+      });
+      console.log('updated datatable: ', this.data);
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: 'Success',
+          message: '更新された値が保存されました！',
+          variant: 'success'
+        }),
+      );
+    } catch (error) {
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: 'Error',
+          message: '更新された値が保存されませんでした。' + error,
+          variant: 'error'
+        }),
+      );
+    }
   }
 
 
@@ -281,7 +298,7 @@ export default class ProductTable extends NavigationMixin(LightningElement) {
 
     // Pass assigned values to prodDataController to create records via Apex
     // Apexでレコードを作成するために、prodDataControllerに代入された値を渡す
-    createRecords({ objectName: 'QuoteLineItem__c', dataList: quoteLineItemFields })
+    createRecords({ objectName: 'QuoteLineItem__c', fields: quoteLineItemFields })
       .then(result => {
         this.dispatchEvent(
           // Show success message
